@@ -2,7 +2,7 @@
 An EXILED plugin that allows create loadouts for server roles
 ```Yaml
 group_loadouts:
-    #Server Role
+    #Server Role or Permission
     admin:
     # Choose the role when player get items
     - role: ClassD
