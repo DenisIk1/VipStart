@@ -2,13 +2,16 @@
 using Exiled.API.Interfaces;
 using Exiled.CustomItems.API.Features;
 using Exiled.Events.EventArgs.Player;
+using Exiled.Permissions.Extensions;
 using LightContainmentZoneDecontamination;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Utils.NonAllocLINQ;
+using static PlayerList;
 
 namespace VipStart
 {
@@ -17,6 +20,10 @@ namespace VipStart
         public bool IsEnabled { get; set; } = true;
 
         public bool Debug { get; set; } = false;
+
+        [Description("permissions or groups check. Use group for group check & use perms for permissions check")]
+
+        public string CheckType { get; set; } = "group";
 
         public Dictionary<string, List<GroupLoadout>> GroupLoadouts { get; set; } = new Dictionary<string, List<GroupLoadout>>()
         {
@@ -64,27 +71,53 @@ namespace VipStart
         {
             Instance = this;
             handlers = new EventHandlers();
-            foreach(string groupname in Instance.Config.GroupLoadouts.Keys)
+            if (Instance.Config.CheckType == "group")
             {
-                if(!Instance.GroupNames.Contains(groupname))
+                foreach (string groupname in Instance.Config.GroupLoadouts.Keys)
                 {
-                    GroupNames.Add(groupname);
+                    if (!Instance.GroupNames.Contains(groupname))
+                    {
+                        GroupNames.Add(groupname);
+                    }
                 }
+                Exiled.Events.Handlers.Player.Spawned += handlers.SpawnedGroup;
             }
-            Exiled.Events.Handlers.Player.Spawned += handlers.Spawned;
+            else if(Instance.Config.CheckType == "perms")
+            {
+                Exiled.Events.Handlers.Player.Spawned += handlers.SpawnedPerms;
+            }
+            else
+            {
+                Log.Warn($"Unexpected type: {Instance.Config.CheckType}, using default group check");
+                foreach (string groupname in Instance.Config.GroupLoadouts.Keys)
+                {
+                    if (!Instance.GroupNames.Contains(groupname))
+                    {
+                        GroupNames.Add(groupname);
+                    }
+                }
+                Exiled.Events.Handlers.Player.Spawned += handlers.SpawnedGroup;
+            }
 
         }
         public override void OnDisabled()
         {
-            Exiled.Events.Handlers.Player.Spawned -= handlers.Spawned;
-            GroupNames.Clear();
+            if(Instance.Config.CheckType == "perms")
+            {
+                Exiled.Events.Handlers.Player.Spawned -= handlers.SpawnedPerms;
+            }
+            else
+            {
+                GroupNames.Clear();
+                Exiled.Events.Handlers.Player.Spawned -= handlers.SpawnedGroup;
+            }
             handlers = null;
             Instance = null;
         }
     }
     public class EventHandlers
     {
-        public void Spawned(SpawnedEventArgs ev)
+        public void SpawnedGroup(SpawnedEventArgs ev)
         {
             if(VipStartMain.Instance.GroupNames.Contains(ev.Player.GroupName) && VipStartMain.Instance.Config.GroupLoadouts[ev.Player.GroupName].TryGetFirst(gl => gl.Role == ev.Player.Role.Type, out GroupLoadout groupLoadout))
             {
@@ -99,6 +132,25 @@ namespace VipStart
                 ev.Player.Health = groupLoadout.HP;
                 ev.Player.MaxHealth = groupLoadout.HP;
 
+            }
+        }
+        public void SpawnedPerms(SpawnedEventArgs ev)
+        {
+            foreach(string perm in VipStartMain.Instance.Config.GroupLoadouts.Keys)
+            {
+                if(ev.Player.CheckPermission(perm) && VipStartMain.Instance.Config.GroupLoadouts[perm].TryGetFirst(gl => gl.Role == ev.Player.Role.Type, out GroupLoadout groupLoadout))
+                {
+                    if (groupLoadout.ShouldClearDefaultLoadout)
+                    {
+                        ev.Player.ClearInventory();
+                    }
+                    foreach (ItemType item in groupLoadout.Loadout)
+                    {
+                        ev.Player.AddItem(item);
+                    }
+                    ev.Player.Health = groupLoadout.HP;
+                    ev.Player.MaxHealth = groupLoadout.HP;
+                }
             }
         }
     }
