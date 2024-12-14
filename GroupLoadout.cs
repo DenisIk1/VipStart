@@ -1,6 +1,8 @@
-﻿using PlayerRoles;
+﻿using Exiled.API.Enums;
+using PlayerRoles;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,13 +12,24 @@ namespace VipStart
     public class GroupLoadout
     {
 
-        public RoleTypeId Role { get; set; }
+        public RoleTypeId Role { get; set; } = RoleTypeId.NtfCaptain;
 
-        public int HP { get; set; }
+        public int HP { get; set; } = 250;
 
-        public List<ItemType> Loadout { get; set; }
+        [Description("Item dictionary, ItemType/Chance")]
+        public Dictionary<ItemType, float> Loadout { get; set; } = new Dictionary<ItemType, float>()
+        {
+             { ItemType.KeycardJanitor , 100},
+             { ItemType.Painkillers , 50 }
+        };
 
-        public bool ShouldClearDefaultLoadout { get; set; }
+        [Description("Ammo Dictionary, AmmoType/Amount")]
+        public Dictionary<AmmoType, ushort> Ammo { get; set; } = new Dictionary<AmmoType, ushort>()
+        {
+            { AmmoType.Nato556, 100 }
+            
+        };
+        public bool ShouldClearDefaultLoadout { get; set; } = false;
 
         
     }
