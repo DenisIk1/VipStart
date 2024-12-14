@@ -16,14 +16,12 @@ namespace VipStart
 
         public int HP { get; set; } = 250;
 
-        [Description("Item dictionary, ItemType/Chance")]
         public Dictionary<ItemType, float> Loadout { get; set; } = new Dictionary<ItemType, float>()
         {
              { ItemType.KeycardJanitor , 100},
              { ItemType.Painkillers , 50 }
         };
 
-        [Description("Ammo Dictionary, AmmoType/Amount")]
         public Dictionary<AmmoType, ushort> Ammo { get; set; } = new Dictionary<AmmoType, ushort>()
         {
             { AmmoType.Nato556, 100 }
