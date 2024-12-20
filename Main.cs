@@ -2,8 +2,6 @@
 using Exiled.API.Interfaces;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Loader;
-using Exiled.Permissions.Extensions;
-using Exiled.Permissions.Features;
 using InventorySystem;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -99,14 +97,21 @@ namespace VipStart
                 {
                     ev.Player.ClearInventory();
                 }
-                foreach(ItemType item in groupLoadout.Loadout.Keys)
+                if(groupLoadout.Loadout.Count != 0)
                 {
-                    if (Loader.Random.Next(0, 100) < groupLoadout.Loadout[item])
+                    foreach (ItemType item in groupLoadout.Loadout.Keys)
                     {
-                        ev.Player.AddItem(item);
+                        if (Loader.Random.Next(0, 100) < groupLoadout.Loadout[item])
+                        {
+                            ev.Player.AddItem(item);
+                        }
                     }
                 }
-                ev.Player.AddAmmo(groupLoadout.Ammo);
+                if (groupLoadout.Ammo.Count != 0)
+                {
+
+                    ev.Player.AddAmmo(groupLoadout.Ammo);
+                }
                 ev.Player.Health = groupLoadout.HP;
                 ev.Player.MaxHealth = groupLoadout.HP;
 
