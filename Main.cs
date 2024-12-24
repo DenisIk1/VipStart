@@ -62,6 +62,11 @@ namespace VipStart
     {
         private bool TryFindCheckName(Player checkplayer, out string checkname)
         {
+            if(VipStartMain.Instance.GroupNames.Count == 0)
+            {
+                checkname = string.Empty;
+                return false;
+            }
             if(!checkplayer.IsVerified)
             {
                 checkname = string.Empty;
@@ -72,14 +77,20 @@ namespace VipStart
                 checkname = string.Empty;
                 return false;
             }
+            if(checkplayer.Group == null)
+            {
+                checkname = string.Empty;
+                return false;
+            }
             if (VipStartMain.Instance.GroupNames.Contains(checkplayer.GroupName))
             {
                 checkname = checkplayer.GroupName;
-                Log.Warn($"Yey, I somehow find {checkplayer.GroupName} to {checkname}");
+                Log.Debug($"Found by groupname");
                 return true;
             }
             if(VipStartMain.Instance.GroupNames.Contains(checkplayer.Group.BadgeText))
             {
+                Log.Debug("Found by Badge text");
                 checkname = checkplayer.Group.BadgeText;
                 return true;
             }
@@ -91,7 +102,7 @@ namespace VipStart
         {
             if(TryFindCheckName(ev.Player, out string checkname) && VipStartMain.Instance.Config.GroupLoadouts[checkname].TryGetFirst(gl => gl.Role == ev.Player.Role.Type, out GroupLoadout groupLoadout))
             {
-                Log.Warn(checkname);
+                Log.Debug(checkname);
                 Log.Debug("Found Player checkname");
                 if(groupLoadout.ShouldClearDefaultLoadout)
                 {
